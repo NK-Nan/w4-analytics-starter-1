@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-  /* เลย์เอาต์: แถบหัวพร้อมปุ่มอัปโหลด → ตัวกรอง → การ์ด KPI 4 ใบ + แถบตรวจสอบข้อมูล → กราฟ 2 ช่อง (ซ้อนเป็นคอลัมน์เดียวบนมือถือ) */
+  /* เลย์เอาต์: แถบหัวพร้อมปุ่มอัปโหลด 2 ไฟล์ → ตัวกรอง → แถบตรวจสอบข้อมูล → บทสรุปผู้บริหาร → แท็บ (ภาพรวม | วันเมกะเซล) */
   :root {
     --bg: #f3f5f7;
     --surface: #ffffff;
@@ -19,6 +19,8 @@
     --accent: #0f6d78;
     --accent-soft: #d8eef0;
     --bar: #3b8f99;
+    --mega: #a2366b;
+    --mega-soft: #f6e1ec;
     --ok: #2f7d4f;
     --warn: #a3650a;
     --bad: #b23a3a;
@@ -33,6 +35,7 @@
     :root:not([data-theme="light"]) {
       --bg: #0f161b; --surface: #172128; --ink: #e5ecf0; --muted: #93a3ae; --line: #2a3841;
       --accent: #5cc3cd; --accent-soft: #173a3f; --bar: #4fb0ba;
+      --mega: #e88bb8; --mega-soft: #3a1f2d;
       --ok: #6cc690; --warn: #e2a64a; --bad: #ec7f7f;
       --ok-soft: #173326; --warn-soft: #3a2c13; --bad-soft: #3d1d1d;
       color-scheme: dark;
@@ -41,6 +44,7 @@
   :root[data-theme="dark"] {
     --bg: #0f161b; --surface: #172128; --ink: #e5ecf0; --muted: #93a3ae; --line: #2a3841;
     --accent: #5cc3cd; --accent-soft: #173a3f; --bar: #4fb0ba;
+    --mega: #e88bb8; --mega-soft: #3a1f2d;
     --ok: #6cc690; --warn: #e2a64a; --bad: #ec7f7f;
     --ok-soft: #173326; --warn-soft: #3a2c13; --bad-soft: #3d1d1d;
     color-scheme: dark;
@@ -61,30 +65,33 @@
   h1 { font-family: var(--font-display); font-weight: 700; font-size: 1.75rem; line-height: 1.2; margin: 0; text-wrap: balance; }
   .sub { color: var(--muted); margin: 4px 0 0; font-size: 0.92rem; }
   .eyebrow { font-size: 0.75rem; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; font-weight: 600; }
-  .upload { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .uploads { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; }
+  .upload { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 0; }
   .btn {
-    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
-    background: var(--accent); color: var(--surface); border: 0; border-radius: 8px;
-    padding: 10px 16px; font: 600 0.95rem var(--font-body);
+    position: relative; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    background: var(--accent); color: var(--surface); border: 1px solid var(--accent); border-radius: 8px;
+    padding: 9px 15px; font: 600 0.95rem var(--font-body);
   }
+  .btn.secondary { background: var(--surface); color: var(--accent); }
   .btn:hover { filter: brightness(1.08); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
   .btn:focus-within, .btn:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
   .btn input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-  .filename { font-size: 0.8rem; color: var(--muted); font-family: var(--font-data); max-width: 320px; overflow-wrap: anywhere; text-align: right; }
+  .filename { font-size: 0.78rem; color: var(--muted); font-family: var(--font-data); max-width: 260px; overflow-wrap: anywhere; text-align: right; }
 
   .filters { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
-  .field { display: grid; gap: 4px; min-width: 0; flex: 1 1 220px; }
+  .field { display: grid; gap: 4px; min-width: 0; flex: 1 1 200px; }
+  .field.narrow { flex: 1 1 140px; }
   .field label { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
   select {
     font: 500 0.95rem var(--font-body); color: var(--ink); background: var(--bg);
     border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; width: 100%;
   }
   select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .field.narrow { flex: 1 1 150px; }
   .scope { justify-self: start; font-size: 0.78rem; color: var(--accent); background: var(--accent-soft); padding: 2px 10px; border-radius: 999px; margin: 0; overflow-wrap: anywhere; }
-  .reset { background: none; border: 1px solid var(--line); color: var(--ink); border-radius: 7px; padding: 8px 12px; font: 500 0.9rem var(--font-body); cursor: pointer; }
-  .reset:hover { border-color: var(--accent); color: var(--accent); }
-  .reset:focus-visible { outline: 2px solid var(--accent); }
+  .ghost { background: none; border: 1px solid var(--line); color: var(--ink); border-radius: 7px; padding: 8px 12px; font: 500 0.9rem var(--font-body); cursor: pointer; }
+  .ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .ghost:focus-visible { outline: 2px solid var(--accent); }
 
   .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
   @media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -103,23 +110,77 @@
   .pill.bad { background: var(--bad-soft); color: var(--bad); }
   .pill.other { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
   .pill b { font-family: var(--font-data); font-weight: 500; }
-  .audit .note { color: var(--warn); }
+  .note { color: var(--warn); }
 
-  .charts { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 14px; }
-  @media (max-width: 900px) { .charts { grid-template-columns: minmax(0, 1fr); } }
   .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; display: grid; gap: 8px; align-content: start; }
   .panel h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; margin: 0; }
-  .panel .hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
+  .hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
+  .charts { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 14px; }
+  @media (max-width: 900px) { .charts { grid-template-columns: minmax(0, 1fr); } }
   .chart { width: 100%; overflow-x: auto; }
   svg text { fill: var(--muted); font-family: var(--font-body); font-size: 11px; }
   svg .val { fill: var(--ink); font-family: var(--font-data); font-size: 11px; }
   svg .grid { stroke: var(--line); stroke-width: 1; }
   .tip { font-family: var(--font-data); font-size: 0.82rem; color: var(--ink); min-height: 1.4em; }
 
+  /* บทสรุปผู้บริหาร */
+  .exec-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+  .exec-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .exec-lines { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .exec-lines li { padding: 8px 12px; border-left: 3px solid var(--accent); background: var(--bg); border-radius: 0 6px 6px 0; max-width: 90ch; }
+  .exec-lines li.flag { border-left-color: var(--warn); background: var(--warn-soft); }
+  .exec-lines li .why { display: block; font-size: 0.78rem; color: var(--warn); }
+  .exec-status { font-size: 0.85rem; color: var(--muted); }
+  .exec-status.ok { color: var(--ok); }
+  .exec-status.warn { color: var(--warn); }
+  details { font-size: 0.82rem; }
+  summary { cursor: pointer; color: var(--muted); }
+  summary:focus-visible { outline: 2px solid var(--accent); }
+  pre.json { font-family: var(--font-data); font-size: 0.78rem; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow-x: auto; margin: 6px 0 0; }
+
+  /* แท็บ */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .tab { background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font: 600 0.95rem var(--font-body); color: var(--muted); cursor: pointer; white-space: nowrap; }
+  .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+  .tab.mega-tab[aria-selected="true"] { border-bottom-color: var(--mega); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .tabpanel { display: grid; gap: 14px; }
+
+  /* วันเมกะเซล */
+  .compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  @media (max-width: 640px) { .compare { grid-template-columns: minmax(0, 1fr); } }
+  .side { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; }
+  .side.mega { border-top: 4px solid var(--mega); }
+  .side.normal { border-top: 4px solid var(--bar); }
+  .side h3 { font-family: var(--font-display); font-size: 1.05rem; margin: 0; }
+  .side dl { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; }
+  .side dt { color: var(--muted); font-size: 0.88rem; }
+  .side dd { margin: 0; text-align: right; font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+  .side dd.big { font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; }
+  .side.mega dd.big { color: var(--mega); }
+  .side.normal dd.big { color: var(--accent); }
+  .share { display: flex; height: 26px; border-radius: 6px; overflow: hidden; background: var(--bg); }
+  .share > div { min-width: 2px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.82rem; color: var(--muted); }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: baseline; }
+  .gp-rows { display: grid; gap: 8px; }
+  .gp-row { display: grid; grid-template-columns: 90px minmax(0, 1fr) 64px; gap: 10px; align-items: center; font-size: 0.88rem; }
+  .gp-track { height: 18px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+  .gp-fill { height: 100%; border-radius: 4px; }
+  .gp-row .num { font-family: var(--font-data); text-align: right; }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; min-width: 560px; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  th { font-weight: 600; color: var(--muted); font-size: 0.8rem; }
+  td.day { font-family: var(--font-display); font-weight: 600; color: var(--mega); }
+  td.day small { display: block; font-family: var(--font-body); font-weight: 400; color: var(--muted); font-size: 0.75rem; }
+  .lift { font-family: var(--font-data); }
+
   .empty { background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; padding: 40px 24px; text-align: center; display: grid; gap: 10px; justify-items: center; }
   .empty h2 { font-family: var(--font-display); font-size: 1.25rem; margin: 0; }
   .empty p { margin: 0; color: var(--muted); max-width: 60ch; }
-  .empty code { font-family: var(--font-data); font-size: 0.85rem; background: var(--bg); padding: 1px 6px; border-radius: 4px; overflow-wrap: anywhere; }
+  code { font-family: var(--font-data); font-size: 0.85em; background: var(--bg); padding: 1px 6px; border-radius: 4px; overflow-wrap: anywhere; }
   .error { background: var(--bad-soft); color: var(--bad); padding: 12px 14px; border-radius: 10px; }
   footer { font-size: 0.78rem; color: var(--muted); }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -135,14 +196,18 @@
 <script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
 <script>
 (function () {
-  const { useState, useMemo } = React;
+  const { useState, useMemo, useEffect, useRef } = React;
   const html = htm.bind(React.createElement);
 
   const SUCCESS = "จัดส่งสำเร็จ";
   const CANCELLED = "ยกเลิก";
   const RETURNED = "คืนสินค้า";
   const ALL = "__all__";
-  const REQUIRED = ["order_id", "order_datetime", "channel", "region", "category", "qty", "unit_price", "discount_pct", "status"];
+  const REQUIRED = ["order_id", "order_datetime", "channel", "region", "category", "product_id", "qty", "unit_price", "discount_pct", "status"];
+  const PRODUCT_REQUIRED = ["product_id", "unit_cost"];
+  // วันเมกะเซล: วันที่ตรงกับเลขเดือน
+  const MEGA_MONTHS = [3, 6, 9, 10, 11, 12];
+  const MAX_SUMMARY_VALUES = 30;
 
   // รูปแบบเงิน: ฿ นำหน้า และคั่นหลักพันด้วยคอมมา เช่น ฿14,107,737
   const num0 = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
@@ -151,25 +216,34 @@
   const fmtBaht = { format: (n) => baht(n, num0) };
   const fmtBaht2 = { format: (n) => baht(n, num2) };
   const fmtInt = new Intl.NumberFormat("en-US");
-  const fmtPct = new Intl.NumberFormat("th-TH", { style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtPct = { format: (r) => num2.format(r * 100) + "%" };
   const fmtMonth = new Intl.DateTimeFormat("th-TH", { month: "short", year: "2-digit" });
+  const fmtDay = new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "short", year: "2-digit" });
   const monthLabel = (ym) => {
     const [y, m] = ym.split("-").map(Number);
     return fmtMonth.format(new Date(y, m - 1, 1));
   };
+  const dayLabel = (ymd) => {
+    const [y, m, d] = ymd.split("-").map(Number);
+    return fmtDay.format(new Date(y, m - 1, d));
+  };
+  const round = (n, dp) => Math.round(n * 10 ** dp) / 10 ** dp;
+  const ratio = (a, b) => (b ? a / b : null);
+  const byTime = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  const cleanHeader = (h) => h.replace(/^﻿/, "").trim();
 
-  // แปลงวันที่เป็นคีย์เดือน "YYYY-MM" (เรียงแบบข้อความได้ตามลำดับเวลา) รองรับ YYYY-MM-DD, DD/MM/YYYY และปี พ.ศ.
-  function parseMonth(v) {
+  // แปลงวันที่เป็น { month: "YYYY-MM", date: "YYYY-MM-DD" } รองรับ YYYY-MM-DD, DD/MM/YYYY และปี พ.ศ.
+  function parseDate(v) {
     const s = String(v ?? "").trim();
-    let y, m, a;
-    if ((a = s.match(/^(\d{4})[-/.](\d{1,2})/))) { y = +a[1]; m = +a[2]; }
-    else if ((a = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/))) { y = +a[3]; m = +a[2]; }
+    let y, m, d, a;
+    if ((a = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/))) { y = +a[1]; m = +a[2]; d = +a[3]; }
+    else if ((a = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/))) { y = +a[3]; m = +a[2]; d = +a[1]; }
     else return null;
     if (y > 2400) y -= 543;
-    if (m < 1 || m > 12) return null;
-    return `${y}-${String(m).padStart(2, "0")}`;
+    if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+    const mm = String(m).padStart(2, "0");
+    return { month: `${y}-${mm}`, date: `${y}-${mm}-${String(d).padStart(2, "0")}`, isMega: d === m && MEGA_MONTHS.includes(m) };
   }
-  const byTime = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
   // แปลงแถวดิบจาก PapaParse ให้เป็นแถวที่ใช้คำนวณได้ แถวที่ตัวเลขผิดรูปจะถูกนับแยกไว้
   function cleanRows(raw) {
@@ -180,14 +254,18 @@
       const price = Number(String(r.unit_price ?? "").trim());
       const discRaw = String(r.discount_pct ?? "").trim();
       const disc = discRaw === "" ? 0 : Number(discRaw);
-      const month = parseMonth(r.order_datetime);
-      if (!Number.isFinite(qty) || !Number.isFinite(price) || !Number.isFinite(disc) || !month) {
+      const dt = parseDate(r.order_datetime);
+      if (!Number.isFinite(qty) || !Number.isFinite(price) || !Number.isFinite(disc) || !dt) {
         invalid++;
         continue;
       }
       rows.push({
         orderId: String(r.order_id ?? "").trim(),
-        month,
+        month: dt.month,
+        date: dt.date,
+        isMega: dt.isMega,
+        productId: String(r.product_id ?? "").trim(),
+        qty,
         channel: String(r.channel ?? "").trim() || "(ไม่ระบุ)",
         region: String(r.region ?? "").trim() || "(ไม่ระบุ)",
         category: String(r.category ?? "").trim() || "(ไม่ระบุ)",
@@ -198,13 +276,35 @@
     return { rows, invalid };
   }
 
+  // products.csv → Map(product_id → unit_cost)
+  function buildCostMap(raw) {
+    const map = new Map();
+    let invalid = 0;
+    for (const r of raw) {
+      const id = String(r.product_id ?? "").trim();
+      const cost = Number(String(r.unit_cost ?? "").trim());
+      if (!id || !Number.isFinite(cost)) { invalid++; continue; }
+      map.set(id, cost);
+    }
+    return { map, invalid };
+  }
+
+  // ต้นทุนของแถว (null ถ้าไม่มี products.csv หรือหา product_id ไม่เจอ)
+  const rowCost = (r, costMap) => {
+    if (!costMap) return null;
+    const c = costMap.get(r.productId);
+    return c === undefined ? null : r.qty * c;
+  };
+
   // คำนวณ KPI และข้อมูลกราฟจากแถวที่ผ่านตัวกรองแล้ว
   // months = เดือนทั้งหมดในช่วงที่เลือก ใช้เป็นแกน X เพื่อให้เดือนที่ไม่มียอดแสดงเป็น 0 แทนที่จะหายไป
-  function summarize(rows, months) {
-    let netSales = 0;
+  // กำไรขั้นต้น = ยอดขายสุทธิ − qty × unit_cost (เฉพาะคำสั่งซื้อสำเร็จ)
+  function summarize(rows, months, costMap) {
+    let netSales = 0, gp = 0, gpNet = 0, costMissing = 0;
     const successIds = new Set();
     const allIds = new Set();
     const cancelIds = new Set();
+    const returnIds = new Set();
     const byMonth = new Map((months || []).map((m) => [m, 0]));
     const byChannel = new Map();
     const statusCounts = new Map();
@@ -212,12 +312,17 @@
       allIds.add(r.orderId);
       statusCounts.set(r.status, (statusCounts.get(r.status) || 0) + 1);
       if (r.status === CANCELLED) cancelIds.add(r.orderId);
+      if (r.status === RETURNED) returnIds.add(r.orderId);
       if (!byMonth.has(r.month)) byMonth.set(r.month, 0);
       if (r.status !== SUCCESS) continue;
       netSales += r.net;
       successIds.add(r.orderId);
       byMonth.set(r.month, byMonth.get(r.month) + r.net);
       byChannel.set(r.channel, (byChannel.get(r.channel) || 0) + r.net);
+      const c = rowCost(r, costMap);
+      if (c === null) { if (costMap) costMissing++; continue; }
+      gp += r.net - c;
+      gpNet += r.net;
     }
     const orders = successIds.size;
     return {
@@ -225,13 +330,153 @@
       orders,
       aov: orders ? netSales / orders : 0,
       cancelRate: allIds.size ? cancelIds.size / allIds.size : 0,
+      returnRate: allIds.size ? returnIds.size / allIds.size : 0,
       totalOrders: allIds.size,
       cancelled: cancelIds.size,
+      gp: costMap ? gp : null,
+      gpMargin: costMap ? ratio(gp, gpNet) : null,
+      costMissing,
       monthly: [...byMonth.entries()].sort((a, b) => byTime(a[0], b[0])).map(([m, v]) => ({ key: m, value: v })),
       channels: [...byChannel.entries()].sort((a, b) => b[1] - a[1]).map(([c, v]) => ({ key: c, value: v })),
       statusCounts: [...statusCounts.entries()].sort((a, b) => b[1] - a[1]),
     };
   }
+
+  // เทียบวันเมกะเซลกับวันปกติ จากแถวที่ผ่านตัวกรองแล้ว
+  // จำนวนวัน = วันที่ที่มีคำสั่งซื้ออย่างน้อย 1 รายการ (ทุกสถานะ) ในตัวกรอง
+  function megaSummary(rows, costMap) {
+    const blank = () => ({ net: 0, gp: 0, gpNet: 0, orders: 0, dates: new Set() });
+    const g = { mega: blank(), normal: blank() };
+    const days = new Map();
+    for (const r of rows) {
+      const side = r.isMega ? g.mega : g.normal;
+      side.dates.add(r.date);
+      if (r.isMega && !days.has(r.date)) days.set(r.date, { date: r.date, net: 0, gp: 0, gpNet: 0, orders: 0 });
+      if (r.status !== SUCCESS) continue;
+      const c = rowCost(r, costMap);
+      const targets = r.isMega ? [side, days.get(r.date)] : [side];
+      for (const t of targets) {
+        t.net += r.net;
+        t.orders += 1;
+        if (c !== null) { t.gp += r.net - c; t.gpNet += r.net; }
+      }
+    }
+    const total = g.mega.net + g.normal.net;
+    const finish = (s) => ({
+      net: s.net,
+      orders: s.orders,
+      days: s.dates.size,
+      share: ratio(s.net, total),
+      perDay: ratio(s.net, s.dates.size),
+      gpMargin: costMap ? ratio(s.gp, s.gpNet) : null,
+    });
+    const normal = finish(g.normal);
+    return {
+      mega: finish(g.mega),
+      normal,
+      byDay: [...days.values()].sort((a, b) => byTime(a.date, b.date)).map((d) => ({
+        date: d.date,
+        net: d.net,
+        orders: d.orders,
+        gpMargin: costMap ? ratio(d.gp, d.gpNet) : null,
+        lift: normal.perDay ? d.net / normal.perDay : null,
+      })),
+    };
+  }
+
+  // JSON ตัวเลขสรุปสำหรับส่งให้ Claude ไม่มีข้อมูลรายแถว ไม่เกิน MAX_SUMMARY_VALUES ค่า
+  function buildExecJson({ s, m, filterLabel, rangeLabel }) {
+    const pct = (r) => (r === null || r === undefined ? null : round(r * 100, 2));
+    const monthly = s.monthly;
+    const top = monthly.reduce((b, x) => (!b || x.value > b.value ? x : b), null);
+    const low = monthly.reduce((b, x) => (!b || x.value < b.value ? x : b), null);
+    const last = monthly[monthly.length - 1];
+    const prev = monthly[monthly.length - 2];
+    const out = {
+      ขอบเขต: { ตัวกรอง: filterLabel, ช่วงเดือน: rangeLabel },
+      ยอดขายสุทธิ_บาท: round(s.netSales, 0),
+      คำสั่งซื้อสำเร็จ: s.orders,
+      AOV_บาท: round(s.aov, 2),
+      อัตรายกเลิก_pct: pct(s.cancelRate),
+      อัตราคืนสินค้า_pct: pct(s.returnRate),
+      กำไรขั้นต้น_บาท: s.gp === null ? null : round(s.gp, 0),
+      อัตรากำไรขั้นต้น_pct: pct(s.gpMargin),
+      เดือนยอดสูงสุด: top ? { เดือน: monthLabel(top.key), ยอด_บาท: round(top.value, 0) } : null,
+      เดือนยอดต่ำสุด: low ? { เดือน: monthLabel(low.key), ยอด_บาท: round(low.value, 0) } : null,
+      เดือนล่าสุดเทียบเดือนก่อนหน้า_pct: last && prev && prev.value ? round((last.value / prev.value - 1) * 100, 2) : null,
+      สัดส่วนยอดขายตามช่องทาง_pct: Object.fromEntries(s.channels.map((c) => [c.key, pct(ratio(c.value, s.netSales))])),
+      วันเมกะเซล: {
+        วันที่นับ: MEGA_MONTHS.map((x) => `${x}.${x}`).join(", "),
+        จำนวนวัน: m.mega.days,
+        สัดส่วนยอดขาย_pct: pct(m.mega.share),
+        ยอดเฉลี่ยต่อวัน_บาท: m.mega.perDay === null ? null : round(m.mega.perDay, 0),
+        อัตรากำไรขั้นต้น_pct: pct(m.mega.gpMargin),
+      },
+      วันปกติ: {
+        จำนวนวัน: m.normal.days,
+        ยอดเฉลี่ยต่อวัน_บาท: m.normal.perDay === null ? null : round(m.normal.perDay, 0),
+        อัตรากำไรขั้นต้น_pct: pct(m.normal.gpMargin),
+      },
+    };
+    // ถ้าช่องทางมีมากจนเกินเพดาน ให้ตัดช่องทางที่เล็กที่สุดออกก่อน
+    const ch = out.สัดส่วนยอดขายตามช่องทาง_pct;
+    const keys = Object.keys(ch);
+    while (countLeaves(out) > MAX_SUMMARY_VALUES && keys.length) delete ch[keys.pop()];
+    return out;
+  }
+  function countLeaves(v) {
+    if (v && typeof v === "object") return Object.values(v).reduce((n, x) => n + countLeaves(x), 0);
+    return 1;
+  }
+
+  // ดึงตัวเลขทุกตัวจากข้อความ (รองรับคอมมาคั่นหลักพัน)
+  const NUM_RE = /\d+(?:,\d{3})*(?:\.\d+)?/g;
+  const numbersIn = (text) => (String(text).match(NUM_RE) || []).map((t) => ({ raw: t, value: Number(t.replace(/,/g, "")) }));
+  // ชุดตัวเลขที่อนุญาต = ตัวเลขทุกตัวที่อยู่ใน JSON (ทั้งค่าและตัวเลขในข้อความ)
+  function allowedNumbers(json) {
+    const set = new Set();
+    const walk = (v) => {
+      // เก็บค่าสัมบูรณ์ด้วย เพราะ -1.18 อาจถูกเขียนว่า "ลดลง 1.18%"
+      if (typeof v === "number") { set.add(v); set.add(Math.abs(v)); }
+      else if (typeof v === "string") numbersIn(v).forEach((n) => set.add(n.value));
+      else if (v && typeof v === "object") { Object.keys(v).forEach((k) => numbersIn(k).forEach((n) => set.add(n.value))); Object.values(v).forEach(walk); }
+    };
+    walk(json);
+    return set;
+  }
+  function checkLines(text, json) {
+    const allowed = allowedNumbers(json);
+    return String(text).split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((line) => {
+      const bad = numbersIn(line).filter((n) => !allowed.has(n.value)).map((n) => n.raw);
+      return { line, bad };
+    });
+  }
+
+  function execPrompt(json) {
+    return [
+      "คุณเป็นนักวิเคราะห์ข้อมูลของร้านค้าออนไลน์ เขียนบทสรุปสำหรับผู้บริหารเป็นภาษาไทยจาก JSON ด้านล่าง",
+      "กติกา:",
+      "- ตอบ 5 บรรทัดพอดี บรรทัดละ 1 ประเด็น ไม่มีหัวเรื่อง ไม่มีเลขลำดับ ไม่มีสัญลักษณ์นำหน้า ไม่มีบรรทัดว่าง และไม่มีข้อความอื่นนอกจาก 5 บรรทัดนี้",
+      "- ใช้เฉพาะตัวเลขที่ปรากฏใน JSON คัดลอกค่าตามที่เขียนไว้ทุกหลัก (ใส่คอมมาคั่นหลักพันได้) ห้ามคำนวณตัวเลขใหม่ ห้ามปัดเศษ ห้ามแปลงหน่วย เช่น ล้าน หรือ พัน และห้ามนับจำนวนเอง",
+      "- ใช้เลขอารบิก คีย์ที่ลงท้าย _pct คือเปอร์เซ็นต์ คีย์ที่ลงท้าย _บาท คือจำนวนเงินบาท",
+      "- ถ้าค่าใดเป็น null ให้ข้ามประเด็นนั้น",
+      "- บรรทัดที่ 1 สรุปภาพรวมยอดขาย บรรทัดที่ 2–4 เป็นประเด็นสำคัญ (ช่องทาง แนวโน้มรายเดือน วันเมกะเซลเทียบวันปกติ กำไรขั้นต้น การยกเลิก) บรรทัดที่ 5 เป็นข้อเสนอแนะ 1 ข้อที่อิงจากตัวเลขเหล่านี้",
+      "",
+      "JSON:",
+      JSON.stringify(json, null, 2),
+    ].join("\n");
+  }
+
+  const ERROR_COPY = {
+    not_granted: "ยังไม่ได้อนุญาตให้หน้านี้ใช้ Claude จึงสร้างบทสรุปไม่ได้",
+    sampling_disabled: "บัญชีนี้ใช้ Claude จากหน้านี้ไม่ได้",
+    rate_limited: "เรียกใช้ Claude ถี่เกินไปหรือถึงขีดจำกัดการใช้งาน รอสักครู่แล้วลองใหม่",
+    session_expired: "เซสชันหมดอายุ กรุณาเข้าสู่ระบบ claude.ai ใหม่",
+    refused: "Claude ไม่ตอบคำขอนี้",
+    empty_completion: "Claude ไม่ได้ส่งข้อความกลับมา ลองใหม่อีกครั้ง",
+    upstream_error: "เชื่อมต่อ Claude ไม่สำเร็จ ลองใหม่อีกครั้ง",
+  };
+  const HIDE_CODES = ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"];
 
   function niceMax(v) {
     if (v <= 0) return 1;
@@ -303,8 +548,165 @@
     return "other";
   }
 
+  const pctOrDash = (r) => (r === null || r === undefined ? "—" : fmtPct.format(r));
+  const bahtOrDash = (n) => (n === null || n === undefined ? "—" : fmtBaht.format(n));
+
+  function MegaTab({ m, hasCost, filterLabel }) {
+    const megaDays = m.byDay.length;
+    if (!megaDays && !m.normal.days) return html`<p class="hint">ไม่มีข้อมูลในตัวกรองนี้</p>`;
+    const gpMax = Math.max(m.mega.gpMargin || 0, m.normal.gpMargin || 0, 0.01);
+    const side = (kind, title, d) => html`
+      <div class=${"side " + kind}>
+        <h3>${title}</h3>
+        <dl>
+          <dt>สัดส่วนยอดขาย</dt><dd class="big">${pctOrDash(d.share)}</dd>
+          <dt>% กำไรขั้นต้น</dt><dd class="big">${hasCost ? pctOrDash(d.gpMargin) : "—"}</dd>
+          <dt>ยอดขายสุทธิ</dt><dd>${fmtBaht.format(d.net)}</dd>
+          <dt>คำสั่งซื้อสำเร็จ</dt><dd>${fmtInt.format(d.orders)}</dd>
+          <dt>จำนวนวัน</dt><dd>${fmtInt.format(d.days)}</dd>
+          <dt>ยอดเฉลี่ยต่อวัน</dt><dd>${bahtOrDash(d.perDay)}</dd>
+        </dl>
+      </div>`;
+    return html`
+      <p class="scope">ตัวกรอง: ${filterLabel}</p>
+      ${hasCost ? null : html`<p class="note">อัปโหลด products.csv เพื่อดู % กำไรขั้นต้น (ใช้ unit_cost ของแต่ละสินค้า)</p>`}
+      <div class="compare">
+        ${side("mega", `วันเมกะเซล (${megaDays} วัน)`, m.mega)}
+        ${side("normal", "วันปกติ", m.normal)}
+      </div>
+      <div class="panel">
+        <h2>สัดส่วนยอดขายสุทธิ</h2>
+        <div class="share" role="img" aria-label=${`วันเมกะเซล ${pctOrDash(m.mega.share)} วันปกติ ${pctOrDash(m.normal.share)}`}>
+          <div style=${{ width: `${(m.mega.share || 0) * 100}%`, background: "var(--mega)" }}></div>
+          <div style=${{ width: `${(m.normal.share || 0) * 100}%`, background: "var(--bar)" }}></div>
+        </div>
+        <div class="legend">
+          <span><i class="sw" style=${{ background: "var(--mega)" }}></i>วันเมกะเซล ${pctOrDash(m.mega.share)}</span>
+          <span><i class="sw" style=${{ background: "var(--bar)" }}></i>วันปกติ ${pctOrDash(m.normal.share)}</span>
+        </div>
+        ${hasCost ? html`
+          <h2 style=${{ marginTop: "8px" }}>% กำไรขั้นต้น</h2>
+          <div class="gp-rows">
+            ${[["วันเมกะเซล", m.mega.gpMargin, "var(--mega)"], ["วันปกติ", m.normal.gpMargin, "var(--bar)"]].map(([label, v, color]) => html`
+              <div class="gp-row" key=${label}>
+                <span>${label}</span>
+                <div class="gp-track"><div class="gp-fill" style=${{ width: `${((v || 0) / gpMax) * 100}%`, background: color }}></div></div>
+                <span class="num">${pctOrDash(v)}</span>
+              </div>`)}
+          </div>
+          <p class="hint">% กำไรขั้นต้น = (ยอดขายสุทธิ − qty × unit_cost) ÷ ยอดขายสุทธิ เฉพาะคำสั่งซื้อ "จัดส่งสำเร็จ"</p>` : null}
+      </div>
+      <div class="panel">
+        <h2>รายวันเมกะเซล</h2>
+        <p class="hint">เทียบยอดเฉลี่ยวันปกติ = ยอดของวันนั้น ÷ ยอดเฉลี่ยต่อวันของวันปกติ (${bahtOrDash(m.normal.perDay)})</p>
+        ${megaDays ? html`
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>วัน</th><th>ยอดขายสุทธิ</th><th>คำสั่งซื้อสำเร็จ</th><th>% กำไรขั้นต้น</th><th>เทียบยอดเฉลี่ยวันปกติ</th></tr></thead>
+              <tbody>
+                ${m.byDay.map((d) => {
+                  const [, mm, dd] = d.date.split("-").map(Number);
+                  return html`<tr key=${d.date}>
+                    <td class="day">${dd}.${mm}<small>${dayLabel(d.date)}</small></td>
+                    <td>${fmtBaht.format(d.net)}</td>
+                    <td>${fmtInt.format(d.orders)}</td>
+                    <td>${hasCost ? pctOrDash(d.gpMargin) : "—"}</td>
+                    <td class="lift">${d.lift === null ? "—" : num2.format(d.lift) + " เท่า"}</td>
+                  </tr>`;
+                })}
+              </tbody>
+            </table>
+          </div>` : html`<p class="hint">ไม่มีวันเมกะเซลในช่วงที่เลือก</p>`}
+      </div>`;
+  }
+
+  function ExecSummary({ json, valueCount }) {
+    const sampleRef = useRef(undefined);
+    const [avail, setAvail] = useState("checking");
+    const [run, setRun] = useState({ phase: "idle" });
+    const ctlRef = useRef(null);
+
+    useEffect(() => {
+      let alive = true;
+      const use = window.claude && window.claude.use;
+      if (!use) { setAvail("absent"); return; }
+      window.claude.use("sample").then((fn) => {
+        if (!alive) return;
+        sampleRef.current = fn;
+        setAvail(fn ? "ready" : "absent");
+      }, () => alive && setAvail("absent"));
+      return () => { alive = false; };
+    }, []);
+
+    // ตัวกรองเปลี่ยน = ตัวเลขเปลี่ยน ล้างบทสรุปเดิมเพื่อไม่ให้เข้าใจผิด
+    const jsonText = JSON.stringify(json);
+    useEffect(() => {
+      if (ctlRef.current) ctlRef.current.abort();
+      setRun({ phase: "idle" });
+    }, [jsonText]);
+
+    async function ask(fresh) {
+      const sample = sampleRef.current;
+      if (!sample) return;
+      const ctl = new AbortController();
+      ctlRef.current = ctl;
+      setRun({ phase: "thinking", text: "" });
+      try {
+        const res = await sample(execPrompt(json), {
+          signal: ctl.signal,
+          cache: fresh ? false : true,
+          onText: ({ text }) => setRun({ phase: "streaming", text }),
+        });
+        setRun({ phase: "done", text: res.text, truncated: res.truncated });
+      } catch (e) {
+        if (e && e.code === "cancelled") { setRun({ phase: "idle" }); return; }
+        if (e && HIDE_CODES.includes(e.code)) setAvail("denied");
+        setRun({ phase: "error", text: e && e.code !== "refused" ? e.text || "" : "", message: ERROR_COPY[e && e.code] || ERROR_COPY.upstream_error });
+      }
+    }
+
+    const busy = run.phase === "thinking" || run.phase === "streaming";
+    const lines = run.text ? checkLines(run.text, json) : [];
+    const flagged = lines.filter((l) => l.bad.length).length;
+
+    return html`
+      <section class="panel" aria-label="บทสรุปผู้บริหาร">
+        <div class="exec-head">
+          <div>
+            <h2>บทสรุปผู้บริหาร</h2>
+            <p class="hint">ส่งเฉพาะตัวเลขสรุป ${valueCount} ค่าด้านล่างให้ Claude ไม่ส่งข้อมูลรายแถว</p>
+          </div>
+          <div class="exec-actions">
+            ${busy
+              ? html`<button class="ghost" type="button" onClick=${() => ctlRef.current && ctlRef.current.abort()}>หยุด</button>`
+              : html`<button class="btn" type="button" disabled=${avail !== "ready"} onClick=${() => ask(false)}>สรุปให้ผู้บริหาร</button>
+                     ${run.phase === "done" || run.phase === "error" ? html`<button class="ghost" type="button" onClick=${() => ask(true)}>เขียนใหม่</button>` : null}`}
+          </div>
+        </div>
+        ${avail === "absent" ? html`<p class="note">ปุ่มนี้ใช้ได้เมื่อเปิดหน้านี้ใน claude.ai เท่านั้น</p>` : null}
+        ${avail === "denied" ? html`<p class="note">หน้านี้ใช้ Claude ไม่ได้ในมุมมองนี้</p>` : null}
+        ${run.phase === "thinking" ? html`<p class="exec-status">กำลังคิด…</p>` : null}
+        ${lines.length ? html`<ol class="exec-lines">
+          ${lines.map((l, i) => html`<li key=${i} class=${l.bad.length ? "flag" : ""}>${l.line}
+            ${l.bad.length ? html`<span class="why">มีตัวเลขที่ไม่อยู่ใน JSON: ${l.bad.join(", ")}</span>` : null}</li>`)}
+        </ol>` : null}
+        ${run.phase === "done" ? html`<p class=${"exec-status " + (flagged || lines.length !== 5 ? "warn" : "ok")}>
+          ${flagged ? `พบ ${flagged} บรรทัดที่มีตัวเลขไม่อยู่ใน JSON ควรกด "เขียนใหม่"` : "ตรวจแล้ว ตัวเลขทุกตัวในบทสรุปมีอยู่ใน JSON"}
+          ${lines.length !== 5 ? ` · ได้ ${lines.length} บรรทัด (ขอไว้ 5 บรรทัด)` : ""}
+          ${run.truncated ? " · คำตอบถูกตัดกลางคัน" : ""}</p>` : null}
+        ${run.phase === "error" ? html`<p class="note" role="alert">${run.message}</p>` : null}
+        <details>
+          <summary>ดู JSON ที่ส่งให้ Claude (${valueCount} ค่า)</summary>
+          <pre class="json">${JSON.stringify(json, null, 2)}</pre>
+        </details>
+      </section>`;
+  }
+
   function App() {
     const [state, setState] = useState({ phase: "idle" });
+    const [products, setProducts] = useState(null);
+    const [productError, setProductError] = useState(null);
+    const [tab, setTab] = useState("overview");
     const [region, setRegion] = useState(ALL);
     const [category, setCategory] = useState(ALL);
     const [channel, setChannel] = useState(ALL);
@@ -323,7 +725,7 @@
         skipEmptyLines: "greedy",
         encoding: "UTF-8",
         // ตัด BOM (U+FEFF) ที่อาจติดมากับชื่อคอลัมน์แรก
-        transformHeader: (h) => h.replace(/^﻿/, "").trim(),
+        transformHeader: cleanHeader,
         complete: (res) => {
           const fields = res.meta.fields || [];
           const missing = REQUIRED.filter((c) => !fields.includes(c));
@@ -340,6 +742,31 @@
       e.target.value = "";
     }
 
+    function onProducts(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: "greedy",
+        encoding: "UTF-8",
+        transformHeader: cleanHeader,
+        complete: (res) => {
+          const fields = res.meta.fields || [];
+          const missing = PRODUCT_REQUIRED.filter((c) => !fields.includes(c));
+          if (missing.length) {
+            setProductError(`ไฟล์ ${file.name} ไม่มีคอลัมน์ ${missing.join(", ")} กรุณาเลือก products.csv ที่มี product_id และ unit_cost`);
+            return;
+          }
+          const { map, invalid } = buildCostMap(res.data);
+          setProductError(null);
+          setProducts({ fileName: file.name, map, invalid });
+        },
+        error: (err) => setProductError(`อ่านไฟล์ products.csv ไม่สำเร็จ: ${err.message}`),
+      });
+      e.target.value = "";
+    }
+
+    const costMap = products ? products.map : null;
     const rows = state.phase === "ready" ? state.rows : [];
     const regions = useMemo(() => [...new Set(rows.map((r) => r.region))].sort((a, b) => a.localeCompare(b, "th")), [rows]);
     const categories = useMemo(() => [...new Set(rows.map((r) => r.category))].sort((a, b) => a.localeCompare(b, "th")), [rows]);
@@ -358,23 +785,39 @@
         r.month >= lo && r.month <= hi),
       [rows, region, category, channel, lo, hi]
     );
-    const s = useMemo(() => summarize(filtered, monthsInRange), [filtered, monthsInRange]);
+    const s = useMemo(() => summarize(filtered, monthsInRange, costMap), [filtered, monthsInRange, costMap]);
+    const m = useMemo(() => megaSummary(filtered, costMap), [filtered, costMap]);
     const isFiltered = region !== ALL || category !== ALL || channel !== ALL || monthFrom !== ALL || monthTo !== ALL;
+    const rangeLabel = lo ? `${monthLabel(lo)} – ${monthLabel(hi)}` : "";
     const filterLabel = [
       region !== ALL && region,
       category !== ALL && category,
       channel !== ALL && channel,
-      (monthFrom !== ALL || monthTo !== ALL) && lo && `${monthLabel(lo)} – ${monthLabel(hi)}`,
+      (monthFrom !== ALL || monthTo !== ALL) && lo && rangeLabel,
     ].filter(Boolean).join(" · ") || "ทั้งหมด";
+    const execJson = useMemo(
+      () => (state.phase === "ready" ? buildExecJson({ s, m, filterLabel, rangeLabel }) : null),
+      [state.phase, s, m, filterLabel, rangeLabel]
+    );
 
-    const uploadBtn = html`
-      <div class="upload">
-        <label class="btn" for="csv-input">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V2M4.5 5.5 8 2l3.5 3.5M2 11v3h12v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          ${state.phase === "ready" ? "เปลี่ยนไฟล์" : "อัปโหลด orders.csv"}
-          <input id="csv-input" type="file" accept=".csv,text/csv" onChange=${onFile} />
-        </label>
-        ${state.fileName ? html`<span class="filename">${state.fileName}</span>` : null}
+    const uploads = html`
+      <div class="uploads">
+        <div class="upload">
+          <label class="btn" for="csv-input">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V2M4.5 5.5 8 2l3.5 3.5M2 11v3h12v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            ${state.phase === "ready" ? "เปลี่ยน orders.csv" : "อัปโหลด orders.csv"}
+            <input id="csv-input" type="file" accept=".csv,text/csv" onChange=${onFile} />
+          </label>
+          ${state.fileName ? html`<span class="filename">${state.fileName}</span>` : null}
+        </div>
+        <div class="upload">
+          <label class="btn secondary" for="products-input">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V2M4.5 5.5 8 2l3.5 3.5M2 11v3h12v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            ${products ? "เปลี่ยน products.csv" : "อัปโหลด products.csv"}
+            <input id="products-input" type="file" accept=".csv,text/csv" onChange=${onProducts} />
+          </label>
+          <span class="filename">${products ? `${products.fileName} · ${fmtInt.format(products.map.size)} สินค้า` : "สำหรับ unit_cost (กำไรขั้นต้น)"}</span>
+        </div>
       </div>`;
 
     return html`
@@ -383,19 +826,20 @@
           <div>
             <div class="eyebrow">สำหรับผู้จัดการร้าน</div>
             <h1>แดชบอร์ดคำสั่งซื้อร้านออนไลน์</h1>
-            <p class="sub">อ่านจากไฟล์ orders.csv ในเครื่องคุณ ข้อมูลไม่ถูกส่งออกไปที่ใด</p>
+            <p class="sub">อ่านไฟล์ CSV ในเบราว์เซอร์ของคุณ บทสรุปผู้บริหารส่งเฉพาะตัวเลขสรุปให้ Claude</p>
           </div>
-          ${uploadBtn}
+          ${uploads}
         </header>
 
         ${state.phase === "error" ? html`<div class="error" role="alert">${state.message}</div>` : null}
+        ${productError ? html`<div class="error" role="alert">${productError}</div>` : null}
 
         ${state.phase !== "ready" ? html`
           <section class="empty">
             <div class="eyebrow">${state.phase === "loading" ? "กำลังอ่านไฟล์…" : "ยังไม่มีข้อมูล"}</div>
             <h2>อัปโหลดไฟล์ orders.csv เพื่อดูยอดขาย</h2>
             <p>ไฟล์เป็น UTF-8 (มี BOM ได้) หัวตารางต้องมี <code>${REQUIRED.join(", ")}</code></p>
-            <p>เมื่ออ่านเสร็จ หน้านี้จะแสดงยอดขายสุทธิ จำนวนคำสั่งซื้อสำเร็จ AOV อัตรายกเลิก กราฟยอดรายเดือน และยอดตามช่องทาง</p>
+            <p>อัปโหลด products.csv (<code>product_id, unit_cost</code>) เพิ่มเพื่อดูกำไรขั้นต้น และ % กำไรขั้นต้นในแท็บวันเมกะเซล</p>
           </section>` : html`
           <section class="filters" aria-label="ตัวกรอง">
             <div class="field">
@@ -423,40 +867,17 @@
               <label for="f-from">ตั้งแต่เดือน</label>
               <select id="f-from" value=${monthFrom} onChange=${(e) => setMonthFrom(e.target.value)}>
                 <option value=${ALL}>เดือนแรก</option>
-                ${allMonths.map((m) => html`<option key=${m} value=${m}>${monthLabel(m)}</option>`)}
+                ${allMonths.map((mo) => html`<option key=${mo} value=${mo}>${monthLabel(mo)}</option>`)}
               </select>
             </div>
             <div class="field narrow">
               <label for="f-to">ถึงเดือน</label>
               <select id="f-to" value=${monthTo} onChange=${(e) => setMonthTo(e.target.value)}>
                 <option value=${ALL}>เดือนล่าสุด</option>
-                ${allMonths.map((m) => html`<option key=${m} value=${m}>${monthLabel(m)}</option>`)}
+                ${allMonths.map((mo) => html`<option key=${mo} value=${mo}>${monthLabel(mo)}</option>`)}
               </select>
             </div>
-            ${isFiltered ? html`<button class="reset" type="button" onClick=${resetFilters}>ล้างตัวกรอง</button>` : null}
-          </section>
-
-          <section class="kpis" aria-label="ตัวชี้วัดหลัก">
-            <div class="kpi lead">
-              <div class="label">ยอดขายสุทธิ</div>
-              <div class="value">${fmtBaht.format(s.netSales)}</div>
-              <div class="def">qty × unit_price × (1 − discount_pct/100) เฉพาะสถานะ "จัดส่งสำเร็จ" ไม่รวมค่าส่ง</div>
-            </div>
-            <div class="kpi">
-              <div class="label">คำสั่งซื้อสำเร็จ</div>
-              <div class="value">${fmtInt.format(s.orders)}</div>
-              <div class="def">จำนวน order_id ที่สถานะ "จัดส่งสำเร็จ"</div>
-            </div>
-            <div class="kpi">
-              <div class="label">AOV (มูลค่าเฉลี่ยต่อคำสั่งซื้อ)</div>
-              <div class="value">${fmtBaht2.format(s.aov)}</div>
-              <div class="def">ยอดขายสุทธิ ÷ คำสั่งซื้อสำเร็จ</div>
-            </div>
-            <div class="kpi">
-              <div class="label">อัตรายกเลิก</div>
-              <div class="value">${fmtPct.format(s.cancelRate)}</div>
-              <div class="def">คำสั่งซื้อ "ยกเลิก" ${fmtInt.format(s.cancelled)} ÷ คำสั่งซื้อทั้งหมด ${fmtInt.format(s.totalOrders)}</div>
-            </div>
+            ${isFiltered ? html`<button class="ghost" type="button" onClick=${resetFilters}>ล้างตัวกรอง</button>` : null}
           </section>
 
           <section class="audit" aria-label="ตรวจสอบข้อมูลที่อ่านได้">
@@ -465,22 +886,61 @@
             ${s.statusCounts.map(([st, n]) => html`<span key=${st} class=${"pill " + statusClass(st)}>${st} <b>${fmtInt.format(n)}</b></span>`)}
             ${state.invalid ? html`<span class="note">ข้าม ${fmtInt.format(state.invalid)} แถวที่ตัวเลขหรือวันที่ผิดรูป</span>` : null}
             ${state.parseErrors ? html`<span class="note">PapaParse แจ้งปัญหา ${fmtInt.format(state.parseErrors)} จุด</span>` : null}
+            ${products ? null : html`<span class="note">ยังไม่มี products.csv จึงยังไม่คำนวณกำไรขั้นต้น</span>`}
+            ${products && s.costMissing ? html`<span class="note">${fmtInt.format(s.costMissing)} แถวสำเร็จหา unit_cost ไม่เจอ ไม่นับในกำไรขั้นต้น</span>` : null}
+            ${products && products.invalid ? html`<span class="note">products.csv มี ${fmtInt.format(products.invalid)} แถวที่ unit_cost ผิดรูป</span>` : null}
           </section>
 
-          <section class="charts">
-            <div class="panel">
-              <h2>ยอดขายสุทธิรายเดือน</h2>
-              <p class="scope">ตัวกรอง: ${filterLabel}</p>
-              <p class="hint">เรียงตามเวลา ชี้หรือแตะจุดบนเส้นเพื่อดูยอดของเดือนนั้น</p>
-              <${LineChart} data=${s.monthly} />
-            </div>
-            <div class="panel">
-              <h2>ยอดขายสุทธิตามช่องทาง</h2>
-              <p class="scope">ตัวกรอง: ${filterLabel}</p>
-              <p class="hint">เรียงจากมากไปน้อย ตัวเลขหลังจุดคือส่วนแบ่งของยอดรวม</p>
-              <${BarChart} data=${s.channels} />
-            </div>
-          </section>`}
+          <${ExecSummary} json=${execJson} valueCount=${countLeaves(execJson)} />
+
+          <div class="tabs" role="tablist" aria-label="มุมมอง">
+            <button class="tab" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected=${tab === "overview"} onClick=${() => setTab("overview")}>ภาพรวม</button>
+            <button class="tab mega-tab" role="tab" id="tab-mega" aria-controls="panel-mega" aria-selected=${tab === "mega"} onClick=${() => setTab("mega")}>วันเมกะเซล</button>
+          </div>
+
+          ${tab === "overview" ? html`
+            <div class="tabpanel" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
+              <section class="kpis" aria-label="ตัวชี้วัดหลัก">
+                <div class="kpi lead">
+                  <div class="label">ยอดขายสุทธิ</div>
+                  <div class="value">${fmtBaht.format(s.netSales)}</div>
+                  <div class="def">qty × unit_price × (1 − discount_pct/100) เฉพาะสถานะ "จัดส่งสำเร็จ" ไม่รวมค่าส่ง${s.gp === null ? "" : ` · กำไรขั้นต้น ${fmtBaht.format(s.gp)} (${pctOrDash(s.gpMargin)})`}</div>
+                </div>
+                <div class="kpi">
+                  <div class="label">คำสั่งซื้อสำเร็จ</div>
+                  <div class="value">${fmtInt.format(s.orders)}</div>
+                  <div class="def">จำนวน order_id ที่สถานะ "จัดส่งสำเร็จ"</div>
+                </div>
+                <div class="kpi">
+                  <div class="label">AOV (มูลค่าเฉลี่ยต่อคำสั่งซื้อ)</div>
+                  <div class="value">${fmtBaht2.format(s.aov)}</div>
+                  <div class="def">ยอดขายสุทธิ ÷ คำสั่งซื้อสำเร็จ</div>
+                </div>
+                <div class="kpi">
+                  <div class="label">อัตรายกเลิก</div>
+                  <div class="value">${fmtPct.format(s.cancelRate)}</div>
+                  <div class="def">คำสั่งซื้อ "ยกเลิก" ${fmtInt.format(s.cancelled)} ÷ คำสั่งซื้อทั้งหมด ${fmtInt.format(s.totalOrders)}</div>
+                </div>
+              </section>
+              <section class="charts">
+                <div class="panel">
+                  <h2>ยอดขายสุทธิรายเดือน</h2>
+                  <p class="scope">ตัวกรอง: ${filterLabel}</p>
+                  <p class="hint">เรียงตามเวลา ชี้หรือแตะจุดบนเส้นเพื่อดูยอดของเดือนนั้น</p>
+                  <${LineChart} data=${s.monthly} />
+                </div>
+                <div class="panel">
+                  <h2>ยอดขายสุทธิตามช่องทาง</h2>
+                  <p class="scope">ตัวกรอง: ${filterLabel}</p>
+                  <p class="hint">เรียงจากมากไปน้อย ตัวเลขหลังจุดคือส่วนแบ่งของยอดรวม</p>
+                  <${BarChart} data=${s.channels} />
+                </div>
+              </section>
+            </div>` : html`
+            <div class="tabpanel" role="tabpanel" id="panel-mega" aria-labelledby="tab-mega">
+              <p class="hint">วันเมกะเซล = 3.3, 6.6, 9.9, 10.10, 11.11, 12.12 (วันที่ตรงกับเลขเดือน) วันปกติ = วันอื่นทั้งหมดที่มีคำสั่งซื้อ</p>
+              <${MegaTab} m=${m} hasCost=${!!products} filterLabel=${filterLabel} />
+            </div>`}`}
 
         <footer>คำนวณในเบราว์เซอร์ทั้งหมด · จำนวนเงินเป็นบาท (฿)</footer>
       </div>`;
