@@ -142,16 +142,15 @@
   const ALL = "__all__";
   const REQUIRED = ["order_id", "order_datetime", "channel", "region", "category", "qty", "unit_price", "discount_pct", "status"];
 
-  const fmtBaht = new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB", maximumFractionDigits: 0 });
-  const fmtBaht2 = new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB", minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const fmtInt = new Intl.NumberFormat("th-TH");
+  // รูปแบบเงิน: ฿ นำหน้า และคั่นหลักพันด้วยคอมมา เช่น ฿14,107,737
+  const num0 = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+  const num2 = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const baht = (n, nf) => (n < 0 ? "−฿" : "฿") + nf.format(Math.abs(n));
+  const fmtBaht = { format: (n) => baht(n, num0) };
+  const fmtBaht2 = { format: (n) => baht(n, num2) };
+  const fmtInt = new Intl.NumberFormat("en-US");
   const fmtPct = new Intl.NumberFormat("th-TH", { style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtMonth = new Intl.DateTimeFormat("th-TH", { month: "short", year: "2-digit" });
-  const fmtShort = (n) => {
-    if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + " ล.";
-    if (Math.abs(n) >= 1e3) return Math.round(n / 1e3) + " พ.";
-    return String(Math.round(n));
-  };
   const monthLabel = (ym) => {
     const [y, m] = ym.split("-").map(Number);
     return fmtMonth.format(new Date(y, m - 1, 1));
@@ -227,7 +226,7 @@
 
   function LineChart({ data }) {
     const [hover, setHover] = useState(null);
-    const W = 640, H = 260, L = 52, R = 16, T = 16, B = 34;
+    const W = 640, H = 260, L = 84, R = 16, T = 16, B = 34;
     if (!data.length) return html`<p class="hint">ไม่มีข้อมูลในตัวกรองนี้</p>`;
     const max = niceMax(Math.max(...data.map((d) => d.value)));
     const x = (i) => data.length === 1 ? L + (W - L - R) / 2 : L + (i * (W - L - R)) / (data.length - 1);
@@ -243,7 +242,7 @@
              onMouseLeave=${() => setHover(null)}>
           ${ticks.map((t) => html`<g key=${t}>
               <line class="grid" x1=${L} x2=${W - R} y1=${y(t)} y2=${y(t)} />
-              <text x=${L - 8} y=${y(t) + 4} text-anchor="end">${fmtShort(t)}</text>
+              <text x=${L - 8} y=${y(t) + 4} text-anchor="end">${fmtBaht.format(t)}</text>
             </g>`)}
           <path d=${area} fill="var(--accent-soft)" stroke="none" />
           <path d=${path} fill="none" stroke="var(--accent)" stroke-width="2.25" stroke-linejoin="round" />
@@ -260,7 +259,7 @@
 
   function BarChart({ data }) {
     if (!data.length) return html`<p class="hint">ไม่มียอดขายสำเร็จในตัวกรองนี้</p>`;
-    const W = 440, rowH = 38, L = 104, R = 96, T = 6;
+    const W = 460, rowH = 38, L = 96, R = 136, T = 6;
     const H = T + data.length * rowH + 4;
     const max = niceMax(Math.max(...data.map((d) => d.value)));
     const total = data.reduce((s, d) => s + d.value, 0);
@@ -274,7 +273,7 @@
               <text x=${L - 10} y=${yy + rowH / 2 + 4} text-anchor="end" style=${{ fill: "var(--ink)", fontSize: "12px" }}>${d.key}</text>
               <rect x=${L} y=${yy + 8} width=${W - L - R} height=${rowH - 16} rx="4" fill="var(--bg)" />
               <rect x=${L} y=${yy + 8} width=${Math.max(xw(d.value), 2)} height=${rowH - 16} rx="4" fill=${i === 0 ? "var(--accent)" : "var(--bar)"} />
-              <text class="val" x=${L + xw(d.value) + 6} y=${yy + rowH / 2 + 4}>${fmtShort(d.value)} · ${Math.round((d.value / total) * 100)}%</text>
+              <text class="val" x=${L + xw(d.value) + 6} y=${yy + rowH / 2 + 4}>${fmtBaht.format(d.value)} · ${Math.round((d.value / total) * 100)}%</text>
             </g>`;
           })}
         </svg>
@@ -422,7 +421,7 @@
             </div>
           </section>`}
 
-        <footer>คำนวณในเบราว์เซอร์ทั้งหมด · ล. = ล้านบาท · พ. = พันบาท</footer>
+        <footer>คำนวณในเบราว์เซอร์ทั้งหมด · จำนวนเงินเป็นบาท (฿)</footer>
       </div>`;
   }
 
