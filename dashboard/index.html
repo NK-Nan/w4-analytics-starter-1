@@ -80,6 +80,8 @@
     border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; width: 100%;
   }
   select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .field.narrow { flex: 1 1 150px; }
+  .scope { justify-self: start; font-size: 0.78rem; color: var(--accent); background: var(--accent-soft); padding: 2px 10px; border-radius: 999px; margin: 0; overflow-wrap: anywhere; }
   .reset { background: none; border: 1px solid var(--line); color: var(--ink); border-radius: 7px; padding: 8px 12px; font: 500 0.9rem var(--font-body); cursor: pointer; }
   .reset:hover { border-color: var(--accent); color: var(--accent); }
   .reset:focus-visible { outline: 2px solid var(--accent); }
@@ -156,6 +158,19 @@
     return fmtMonth.format(new Date(y, m - 1, 1));
   };
 
+  // แปลงวันที่เป็นคีย์เดือน "YYYY-MM" (เรียงแบบข้อความได้ตามลำดับเวลา) รองรับ YYYY-MM-DD, DD/MM/YYYY และปี พ.ศ.
+  function parseMonth(v) {
+    const s = String(v ?? "").trim();
+    let y, m, a;
+    if ((a = s.match(/^(\d{4})[-/.](\d{1,2})/))) { y = +a[1]; m = +a[2]; }
+    else if ((a = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/))) { y = +a[3]; m = +a[2]; }
+    else return null;
+    if (y > 2400) y -= 543;
+    if (m < 1 || m > 12) return null;
+    return `${y}-${String(m).padStart(2, "0")}`;
+  }
+  const byTime = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
   // แปลงแถวดิบจาก PapaParse ให้เป็นแถวที่ใช้คำนวณได้ แถวที่ตัวเลขผิดรูปจะถูกนับแยกไว้
   function cleanRows(raw) {
     const rows = [];
@@ -165,8 +180,8 @@
       const price = Number(String(r.unit_price ?? "").trim());
       const discRaw = String(r.discount_pct ?? "").trim();
       const disc = discRaw === "" ? 0 : Number(discRaw);
-      const month = String(r.order_datetime ?? "").trim().slice(0, 7);
-      if (!Number.isFinite(qty) || !Number.isFinite(price) || !Number.isFinite(disc) || !/^\d{4}-\d{2}$/.test(month)) {
+      const month = parseMonth(r.order_datetime);
+      if (!Number.isFinite(qty) || !Number.isFinite(price) || !Number.isFinite(disc) || !month) {
         invalid++;
         continue;
       }
@@ -184,12 +199,13 @@
   }
 
   // คำนวณ KPI และข้อมูลกราฟจากแถวที่ผ่านตัวกรองแล้ว
-  function summarize(rows) {
+  // months = เดือนทั้งหมดในช่วงที่เลือก ใช้เป็นแกน X เพื่อให้เดือนที่ไม่มียอดแสดงเป็น 0 แทนที่จะหายไป
+  function summarize(rows, months) {
     let netSales = 0;
     const successIds = new Set();
     const allIds = new Set();
     const cancelIds = new Set();
-    const byMonth = new Map();
+    const byMonth = new Map((months || []).map((m) => [m, 0]));
     const byChannel = new Map();
     const statusCounts = new Map();
     for (const r of rows) {
@@ -211,7 +227,7 @@
       cancelRate: allIds.size ? cancelIds.size / allIds.size : 0,
       totalOrders: allIds.size,
       cancelled: cancelIds.size,
-      monthly: [...byMonth.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([m, v]) => ({ key: m, value: v })),
+      monthly: [...byMonth.entries()].sort((a, b) => byTime(a[0], b[0])).map(([m, v]) => ({ key: m, value: v })),
       channels: [...byChannel.entries()].sort((a, b) => b[1] - a[1]).map(([c, v]) => ({ key: c, value: v })),
       statusCounts: [...statusCounts.entries()].sort((a, b) => b[1] - a[1]),
     };
@@ -235,7 +251,7 @@
     const path = data.map((d, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(d.value).toFixed(1)}`).join(" ");
     const area = `${path} L${x(data.length - 1).toFixed(1)},${y(0)} L${x(0).toFixed(1)},${y(0)} Z`;
     const step = data.length > 14 ? Math.ceil(data.length / 12) : 1;
-    const h = hover ?? data.length - 1;
+    const h = hover != null && hover < data.length ? hover : data.length - 1;
     return html`
       <div class="chart">
         <svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="กราฟเส้นยอดขายสุทธิรายเดือน" style=${{ minWidth: "420px", display: "block" }}
@@ -291,6 +307,12 @@
     const [state, setState] = useState({ phase: "idle" });
     const [region, setRegion] = useState(ALL);
     const [category, setCategory] = useState(ALL);
+    const [channel, setChannel] = useState(ALL);
+    const [monthFrom, setMonthFrom] = useState(ALL);
+    const [monthTo, setMonthTo] = useState(ALL);
+    function resetFilters() {
+      setRegion(ALL); setCategory(ALL); setChannel(ALL); setMonthFrom(ALL); setMonthTo(ALL);
+    }
 
     function onFile(e) {
       const file = e.target.files && e.target.files[0];
@@ -310,8 +332,7 @@
             return;
           }
           const { rows, invalid } = cleanRows(res.data);
-          setRegion(ALL);
-          setCategory(ALL);
+          resetFilters();
           setState({ phase: "ready", fileName: file.name, rows, rawCount: res.data.length, invalid, parseErrors: res.errors.length });
         },
         error: (err) => setState({ phase: "error", fileName: file.name, message: `อ่านไฟล์ไม่สำเร็จ: ${err.message}` }),
@@ -322,12 +343,29 @@
     const rows = state.phase === "ready" ? state.rows : [];
     const regions = useMemo(() => [...new Set(rows.map((r) => r.region))].sort((a, b) => a.localeCompare(b, "th")), [rows]);
     const categories = useMemo(() => [...new Set(rows.map((r) => r.category))].sort((a, b) => a.localeCompare(b, "th")), [rows]);
+    const channelList = useMemo(() => [...new Set(rows.map((r) => r.channel))].sort((a, b) => a.localeCompare(b, "th")), [rows]);
+    const allMonths = useMemo(() => [...new Set(rows.map((r) => r.month))].sort(byTime), [rows]);
+    // ช่วงเดือนที่เลือก ถ้าเลือก "ตั้งแต่" หลัง "ถึง" จะสลับให้อัตโนมัติ
+    let lo = monthFrom === ALL ? allMonths[0] : monthFrom;
+    let hi = monthTo === ALL ? allMonths[allMonths.length - 1] : monthTo;
+    if (lo && hi && lo > hi) [lo, hi] = [hi, lo];
+    const monthsInRange = useMemo(() => allMonths.filter((m) => m >= lo && m <= hi), [allMonths, lo, hi]);
     const filtered = useMemo(
-      () => rows.filter((r) => (region === ALL || r.region === region) && (category === ALL || r.category === category)),
-      [rows, region, category]
+      () => rows.filter((r) =>
+        (region === ALL || r.region === region) &&
+        (category === ALL || r.category === category) &&
+        (channel === ALL || r.channel === channel) &&
+        r.month >= lo && r.month <= hi),
+      [rows, region, category, channel, lo, hi]
     );
-    const s = useMemo(() => summarize(filtered), [filtered]);
-    const isFiltered = region !== ALL || category !== ALL;
+    const s = useMemo(() => summarize(filtered, monthsInRange), [filtered, monthsInRange]);
+    const isFiltered = region !== ALL || category !== ALL || channel !== ALL || monthFrom !== ALL || monthTo !== ALL;
+    const filterLabel = [
+      region !== ALL && region,
+      category !== ALL && category,
+      channel !== ALL && channel,
+      (monthFrom !== ALL || monthTo !== ALL) && lo && `${monthLabel(lo)} – ${monthLabel(hi)}`,
+    ].filter(Boolean).join(" · ") || "ทั้งหมด";
 
     const uploadBtn = html`
       <div class="upload">
@@ -374,7 +412,28 @@
                 ${categories.map((c) => html`<option key=${c} value=${c}>${c}</option>`)}
               </select>
             </div>
-            ${isFiltered ? html`<button class="reset" type="button" onClick=${() => { setRegion(ALL); setCategory(ALL); }}>ล้างตัวกรอง</button>` : null}
+            <div class="field">
+              <label for="f-channel">ช่องทาง</label>
+              <select id="f-channel" value=${channel} onChange=${(e) => setChannel(e.target.value)}>
+                <option value=${ALL}>ทุกช่องทาง</option>
+                ${channelList.map((c) => html`<option key=${c} value=${c}>${c}</option>`)}
+              </select>
+            </div>
+            <div class="field narrow">
+              <label for="f-from">ตั้งแต่เดือน</label>
+              <select id="f-from" value=${monthFrom} onChange=${(e) => setMonthFrom(e.target.value)}>
+                <option value=${ALL}>เดือนแรก</option>
+                ${allMonths.map((m) => html`<option key=${m} value=${m}>${monthLabel(m)}</option>`)}
+              </select>
+            </div>
+            <div class="field narrow">
+              <label for="f-to">ถึงเดือน</label>
+              <select id="f-to" value=${monthTo} onChange=${(e) => setMonthTo(e.target.value)}>
+                <option value=${ALL}>เดือนล่าสุด</option>
+                ${allMonths.map((m) => html`<option key=${m} value=${m}>${monthLabel(m)}</option>`)}
+              </select>
+            </div>
+            ${isFiltered ? html`<button class="reset" type="button" onClick=${resetFilters}>ล้างตัวกรอง</button>` : null}
           </section>
 
           <section class="kpis" aria-label="ตัวชี้วัดหลัก">
@@ -411,11 +470,13 @@
           <section class="charts">
             <div class="panel">
               <h2>ยอดขายสุทธิรายเดือน</h2>
-              <p class="hint">ชี้หรือแตะจุดบนเส้นเพื่อดูยอดของเดือนนั้น</p>
+              <p class="scope">ตัวกรอง: ${filterLabel}</p>
+              <p class="hint">เรียงตามเวลา ชี้หรือแตะจุดบนเส้นเพื่อดูยอดของเดือนนั้น</p>
               <${LineChart} data=${s.monthly} />
             </div>
             <div class="panel">
               <h2>ยอดขายสุทธิตามช่องทาง</h2>
+              <p class="scope">ตัวกรอง: ${filterLabel}</p>
               <p class="hint">เรียงจากมากไปน้อย ตัวเลขหลังจุดคือส่วนแบ่งของยอดรวม</p>
               <${BarChart} data=${s.channels} />
             </div>
